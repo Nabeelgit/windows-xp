@@ -1,15 +1,17 @@
 body {
     font-family: 'Tahoma', sans-serif;
-    background-image: url('https://i.imgur.com/Zk6TR5k.jpg');
+    background-image: url('./icons/defaultwallpaper.jpeg');
     background-size: cover;
     margin: 0;
     padding: 0;
     overflow: hidden;
+    font-size: 16px; /* Default font size */
 }
 
 /* Apply Tahoma font to all elements */
 * {
     font-family: 'Tahoma', sans-serif;
+    font-size: inherit; /* Ensure all elements inherit font size */
 }
 
 .taskbar {
@@ -107,7 +109,7 @@ body {
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
     display: none;
     z-index: 100;
-    transition: all 0.3s ease;
+    transition: none; /* Remove transition for smoother dragging */
 }
 
 .window.show {
@@ -133,6 +135,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    cursor: move; /* Add move cursor */
 }
 
 .window-title {
@@ -337,4 +340,27 @@ body {
 
 .window.maximized .resize-handle {
     display: none;
+}
+
+.file-explorer-content {
+    padding: 10px;
+}
+
+.file-explorer-content h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.file-explorer-content ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.file-explorer-content li {
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+.file-explorer-content li:hover {
+    text-decoration: underline;
 }

@@ -43,27 +43,36 @@ document.addEventListener('DOMContentLoaded', () => {
     shutDownOption.addEventListener('click', showShutdownScreen);
     sleepOption.addEventListener('click', showBlackScreen);
     restartOption.addEventListener('click', showRestartScreen);
+
+    // Apply saved font size on page load
+    setFontSize(getFontSize());
 });
 
-function openWindow(id) {
-    if (!windows[id]) {
-        if (id === 'myComputer') {
-            windows[id] = createWindow(id, 'My Computer', '<!-- My Computer content -->');
-        } else if (id === 'settings-window') {
-            windows[id] = createWindow(id, 'Settings', createSettingsContent());
-        }
-        addWindowFunctionality(windows[id]);
-        createTaskbarButton(windows[id]);
+// Function to set font size and save to localStorage
+function setFontSize(size) {
+    document.body.style.fontSize = `${size}px`;
+    localStorage.setItem('fontSize', size);
+    if (document.getElementById('font-size-value')) {
+        document.getElementById('font-size-value').textContent = size;
     }
-    windows[id].classList.add('show');
-    windows[id].classList.remove('minimized');
-    updateTaskbarButtonState(windows[id]);
+    if (document.getElementById('font-size-slider')) {
+        document.getElementById('font-size-slider').value = size;
+    }
 }
 
-function createWindow(id, title, content) {
+// Function to get font size from localStorage or return default
+function getFontSize() {
+    return localStorage.getItem('fontSize') || 16;
+}
+
+function createWindow(title, content) {
+    const windowId = 'window-' + Date.now(); // Generate a unique ID
     const window = document.createElement('div');
-    window.id = id;
+    window.id = windowId;
     window.className = 'window';
+    window.style.left = '50px';
+    window.style.top = '50px';
+    window.style.zIndex = getTopZIndex() + 1;
     window.innerHTML = `
         <div class="window-header">
             <span class="window-title">${title}</span>
@@ -78,20 +87,110 @@ function createWindow(id, title, content) {
         </div>
     `;
     document.body.appendChild(window);
+    windows[windowId] = window;
+    addWindowFunctionality(window);
+    createTaskbarButton(window);
     return window;
 }
 
-function createSettingsContent() {
-    return `
-        <label for="font-size-slider">Font Size: <span id="font-size-value">16</span>px</label>
-        <input type="range" id="font-size-slider" min="12" max="24" value="16">
-    `;
+function openWindow(id) {
+    if (!windows[id]) {
+        const content = createWindowContent(id);
+        const title = getWindowTitle(id);
+        windows[id] = createWindow(title, content);
+    } else {
+        // If the window exists but was closed, show it again
+        windows[id].classList.remove('minimized');
+    }
+    windows[id].classList.add('show');
+    createTaskbarButton(windows[id]); // Recreate taskbar button if it doesn't exist
+    updateTaskbarButtonState(windows[id]);
+}
+
+function createWindowContent(id) {
+    switch (id) {
+        case 'myComputer':
+            return `
+                <div class="my-computer-content">
+                    <h2>My Computer</h2>
+                    <ul>
+                        <li>Local Disk (C:)</li>
+                        <li>DVD Drive (D:)</li>
+                        <li>Network Drive (Z:)</li>
+                    </ul>
+                </div>
+            `;
+        case 'settings-window':
+            const currentSize = getFontSize();
+            return `
+                <label for="font-size-slider">Font Size: <span id="font-size-value">${currentSize}</span>px</label>
+                <input type="range" id="font-size-slider" min="12" max="24" value="${currentSize}">
+            `;
+        case 'fileExplorer':
+            return `
+                <div class="file-explorer-content">
+                    <h2>File Explorer</h2>
+                    <ul>
+                        <li>Documents</li>
+                        <li>Pictures</li>
+                        <li>Music</li>
+                        <li>Videos</li>
+                        <li>Downloads</li>
+                    </ul>
+                </div>
+            `;
+        default:
+            return '<p>Window content not found.</p>';
+    }
+}
+
+function getWindowTitle(id) {
+    switch (id) {
+        case 'myComputer':
+            return 'My Computer';
+        case 'settings-window':
+            return 'Settings';
+        case 'fileExplorer':
+            return 'File Explorer';
+        default:
+            return 'Untitled Window';
+    }
 }
 
 function addWindowFunctionality(window) {
+    const header = window.querySelector('.window-header');
     const minimizeBtn = window.querySelector('.window-control.minimize');
     const maximizeBtn = window.querySelector('.window-control.maximize');
     const closeBtn = window.querySelector('.window-control.close');
+
+    let isDragging = false;
+    let startX, startY, startLeft, startTop;
+
+    header.addEventListener('mousedown', startDragging);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', stopDragging);
+
+    function startDragging(e) {
+        if (window.classList.contains('maximized')) return;
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = window.offsetLeft;
+        startTop = window.offsetTop;
+        window.style.zIndex = getTopZIndex() + 1;
+    }
+
+    function drag(e) {
+        if (!isDragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        window.style.left = `${startLeft + dx}px`;
+        window.style.top = `${startTop + dy}px`;
+    }
+
+    function stopDragging() {
+        isDragging = false;
+    }
 
     minimizeBtn.addEventListener('click', () => {
         window.classList.add('minimized');
@@ -101,16 +200,52 @@ function addWindowFunctionality(window) {
 
     maximizeBtn.addEventListener('click', () => {
         window.classList.toggle('maximized');
+        if (window.classList.contains('maximized')) {
+            window.dataset.restoreTop = window.style.top;
+            window.dataset.restoreLeft = window.style.left;
+            window.style.top = '0';
+            window.style.left = '0';
+        } else {
+            window.style.top = window.dataset.restoreTop;
+            window.style.left = window.dataset.restoreLeft;
+        }
     });
 
     closeBtn.addEventListener('click', () => {
-        window.remove();
-        const taskbarButton = document.querySelector(`.taskbar-button[data-window="${window.id}"]`);
-        if (taskbarButton) {
-            taskbarButton.remove();
-        }
-        delete windows[window.id];
+        closeWindow(window);
     });
+
+    // Add font size functionality if it's the settings window
+    if (window.querySelector('#font-size-slider')) {
+        const fontSizeSlider = window.querySelector('#font-size-slider');
+        
+        fontSizeSlider.value = getFontSize(); // Set initial slider value
+        
+        fontSizeSlider.addEventListener('input', () => {
+            setFontSize(fontSizeSlider.value);
+        });
+    }
+}
+
+function getTopZIndex() {
+    return Math.max(
+        ...Array.from(document.querySelectorAll('.window'))
+            .map(w => parseInt(w.style.zIndex) || 0)
+    );
+}
+
+function closeWindow(window) {
+    window.classList.remove('show');
+    window.classList.add('minimized');
+    const taskbarButton = document.querySelector(`.taskbar-button[data-window="${window.id}"]`);
+    if (taskbarButton) {
+        taskbarButton.remove();
+    }
+    // Remove the window from the windows object
+    const windowId = Object.keys(windows).find(key => windows[key] === window);
+    if (windowId) {
+        delete windows[windowId];
+    }
 }
 
 function createTaskbarButton(window) {
@@ -198,4 +333,23 @@ function showRestartScreen() {
             location.reload();
         }
     }, 30);
+}
+
+function factoryReset() {
+    if ('caches' in window) {
+        caches.keys().then((names) => {
+            names.forEach(name => {
+                caches.delete(name);
+            });
+        });
+    }
+    
+    // Clear local storage
+    localStorage.clear();
+    
+    // Clear session storage
+    sessionStorage.clear();
+
+    // Hard reload
+    window.location.reload(true);
 }
