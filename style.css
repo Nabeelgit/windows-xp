@@ -23,6 +23,7 @@ body {
     display: flex;
     align-items: center;
     z-index: 1000;
+    justify-content: space-between; /* This will push the clock to the right */
 }
 
 .start-button {
@@ -364,76 +365,79 @@ body {
 .file-explorer-content li:hover {
     text-decoration: underline;
 }
-.resize-handle {
-    position: absolute;
-    background: transparent;
+
+.profile-content {
+    display: flex;
+    padding: 20px;
+    height: calc(100% - 40px); /* Adjust for padding */
 }
 
-.resize-handle.top {
-    top: -3px;
-    left: 0;
-    right: 0;
-    height: 6px;
-    cursor: n-resize;
+.profile-info {
+    flex: 1;
+    padding-right: 20px;
+    overflow-y: auto;
+    max-height: 250px; /* Set a max height for scrolling */
+    padding: 10px;
+    border: 1px solid #ccc; /* Just for visibility */
+    box-sizing: border-box; /* Include padding and border in the height */
 }
 
-.resize-handle.bottom {
-    bottom: -3px;
-    left: 0;
-    right: 0;
-    height: 6px;
-    cursor: s-resize;
-    cursor: s-resize;
+.profile-info h2, .profile-info p {
+    margin: 0 0 10px 0; /* Spacing for elements inside */
 }
 
-.resize-handle.left {
-    left: -3px;
-    top: 0;
-    bottom: 0;
-    width: 6px;
-    cursor: w-resize;
+.profile-picture {
+    width: 150px;
+    height: 150px;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 50%;
 }
 
-.resize-handle.right {
-    right: -3px;
-    top: 0;
-    bottom: 0;
-    width: 6px;
-    cursor: e-resize;
+.profile-picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensure the image covers the area */
 }
 
-.resize-handle.top-left {
-    top: -3px;
-    left: -3px;
-    width: 6px;
-    height: 6px;
-    cursor: nw-resize;
+/* Customize scrollbar appearance (optional) */
+.profile-info::-webkit-scrollbar {
+    width: 8px;
 }
 
-.resize-handle.top-right {
-    top: -3px;
-    right: -3px;
-    width: 6px;
-    height: 6px;
-    cursor: ne-resize;
+.profile-info::-webkit-scrollbar-track {
+    background: #f1f1f1;
 }
 
-.resize-handle.bottom-left {
-    bottom: -3px;
-    left: -3px;
-    width: 6px;
-    height: 6px;
-    cursor: sw-resize;
+.profile-info::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
 }
 
-.resize-handle.bottom-right {
-    bottom: -3px;
-    right: -3px;
-    width: 6px;
-    height: 6px;
-    cursor: se-resize;
+.profile-info::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
 
-.window.maximized .resize-handle {
-    display: none;
+.taskbar-clock {
+    color: white;
+    font-size: 0.75em; /* This is equivalent to 12px when the body font size is 16px */
+    padding-right: 10px;
+    white-space: nowrap;
+}
+
+.settings-content {
+    padding: 20px;
+}
+
+.setting-item {
+    margin-bottom: 20px;
+}
+
+.setting-item label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+#military-time {
+    margin-right: 5px;
 }

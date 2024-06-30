@@ -46,6 +46,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Apply saved font size on page load
     setFontSize(getFontSize());
+
+    const myProfileMenuItem = startMenu.querySelector('.start-menu-item:first-child');
+    myProfileMenuItem.addEventListener('click', () => {
+        openWindow('myProfile');
+    });
+
+    // Initial call to display the time immediately
+    updateClock();
 });
 
 // Function to set font size and save to localStorage
@@ -55,8 +63,11 @@ function setFontSize(size) {
     if (document.getElementById('font-size-value')) {
         document.getElementById('font-size-value').textContent = size;
     }
-    if (document.getElementById('font-size-slider')) {
-        document.getElementById('font-size-slider').value = size;
+    
+    // Update the taskbar clock font size
+    const clockElement = document.querySelector('.taskbar-clock');
+    if (clockElement) {
+        clockElement.style.fontSize = `${Math.max(10, size - 4)}px`; // Ensure minimum readable size
     }
 }
 
@@ -73,10 +84,18 @@ function createWindow(title, content) {
     
     // Load saved position and size from localStorage
     const savedState = JSON.parse(localStorage.getItem(windowId) || '{}');
+    
+    // Set default size for My Profile window
+    if (title === 'My Profile') {
+        window.style.width = savedState.width || '600px';
+        window.style.height = savedState.height || '400px';
+    } else {
+        window.style.width = savedState.width || '400px';
+        window.style.height = savedState.height || '300px';
+    }
+    
     window.style.left = savedState.left || '50px';
     window.style.top = savedState.top || '50px';
-    window.style.width = savedState.width || '400px';
-    window.style.height = savedState.height || '300px';
     
     window.style.zIndex = getTopZIndex() + 1;
     window.innerHTML = `
@@ -136,9 +155,20 @@ function createWindowContent(id) {
             `;
         case 'settings-window':
             const currentSize = getFontSize();
+            const militaryTime = localStorage.getItem('militaryTime') === 'true';
             return `
-                <label for="font-size-slider">Font Size: <span id="font-size-value">${currentSize}</span>px</label>
-                <input type="range" id="font-size-slider" min="12" max="24" value="${currentSize}">
+                <div class="settings-content">
+                    <div class="setting-item">
+                        <label for="font-size-slider">Font Size: <span id="font-size-value">${currentSize}</span>px</label>
+                        <input type="range" id="font-size-slider" min="12" max="24" value="${currentSize}">
+                    </div>
+                    <div class="setting-item">
+                        <label for="military-time">
+                            <input type="checkbox" id="military-time" ${militaryTime ? 'checked' : ''}>
+                            Use 24-hour format
+                        </label>
+                    </div>
+                </div>
             `;
         case 'fileExplorer':
             return `
@@ -151,6 +181,24 @@ function createWindowContent(id) {
                         <li>Videos</li>
                         <li>Downloads</li>
                     </ul>
+                </div>
+            `;
+        case 'recyclingBin':
+            return `
+                <div class="recycling-bin-content">
+                    <p>The Recycle Bin is empty.</p>
+                </div>
+            `;
+        case 'myProfile':
+            return `
+                <div class="profile-content">
+                    <div class="profile-info">
+                        <h2>Guest User</h2>
+                        <p>Windows XP is a personal computer operating system produced by Microsoft as part of the Windows NT family of operating systems. It was released to manufacturing on August 24, 2001, and generally released for retail sale on October 25, 2001. It was the successor to both Windows 2000 and Windows Me, and was the first consumer-oriented operating system produced by Microsoft to be built on the Windows NT kernel.</p>
+                    </div>
+                    <div class="profile-picture">
+                        <img src="./icons/pfp.png" alt="Profile Picture">
+                    </div>
                 </div>
             `;
         default:
@@ -166,6 +214,10 @@ function getWindowTitle(id) {
             return 'Settings';
         case 'fileExplorer':
             return 'File Explorer';
+        case 'recyclingBin':
+            return 'Recycle Bin';
+        case 'myProfile':
+            return 'My Profile';
         default:
             return 'Untitled Window';
     }
@@ -233,11 +285,19 @@ function addWindowFunctionality(window) {
     // Add font size functionality if it's the settings window
     if (window.querySelector('#font-size-slider')) {
         const fontSizeSlider = window.querySelector('#font-size-slider');
+        const militaryTimeCheckbox = window.querySelector('#military-time');
         
         fontSizeSlider.value = getFontSize(); // Set initial slider value
         
         fontSizeSlider.addEventListener('input', () => {
             setFontSize(fontSizeSlider.value);
+            updateClock(); // Update the clock immediately when font size changes
+        });
+
+        militaryTimeCheckbox.checked = localStorage.getItem('militaryTime') === 'true';
+        militaryTimeCheckbox.addEventListener('change', () => {
+            localStorage.setItem('militaryTime', militaryTimeCheckbox.checked);
+            updateClock(); // Update the clock immediately when the setting changes
         });
     }
 
@@ -426,3 +486,31 @@ function factoryReset() {
     // Hard reload
     window.location.reload(true);
 }
+
+function updateClock() {
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+    const year = now.getFullYear();
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const militaryTime = localStorage.getItem('militaryTime') === 'true';
+    
+    let timeString;
+    if (militaryTime) {
+        timeString = `${hours.toString().padStart(2, '0')}:${minutes}`;
+    } else {
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        timeString = `${hours}:${minutes} ${ampm}`;
+    }
+    
+    const dateString = `${month}/${day}/${year}`;
+    
+    const clockElement = document.querySelector('.taskbar-clock');
+    clockElement.textContent = `${dateString} ${timeString}`;
+}
+
+// Update the clock every second
+setInterval(updateClock, 1000);
