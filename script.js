@@ -70,8 +70,14 @@ function createWindow(title, content) {
     const window = document.createElement('div');
     window.id = windowId;
     window.className = 'window';
-    window.style.left = '50px';
-    window.style.top = '50px';
+    
+    // Load saved position and size from localStorage
+    const savedState = JSON.parse(localStorage.getItem(windowId) || '{}');
+    window.style.left = savedState.left || '50px';
+    window.style.top = savedState.top || '50px';
+    window.style.width = savedState.width || '400px';
+    window.style.height = savedState.height || '300px';
+    
     window.style.zIndex = getTopZIndex() + 1;
     window.innerHTML = `
         <div class="window-header">
@@ -85,6 +91,14 @@ function createWindow(title, content) {
         <div class="window-content">
             ${content}
         </div>
+        <div class="resize-handle top"></div>
+        <div class="resize-handle bottom"></div>
+        <div class="resize-handle left"></div>
+        <div class="resize-handle right"></div>
+        <div class="resize-handle top-left"></div>
+        <div class="resize-handle top-right"></div>
+        <div class="resize-handle bottom-left"></div>
+        <div class="resize-handle bottom-right"></div>
     `;
     document.body.appendChild(window);
     windows[windowId] = window;
@@ -190,6 +204,7 @@ function addWindowFunctionality(window) {
 
     function stopDragging() {
         isDragging = false;
+        saveWindowState(window);
     }
 
     minimizeBtn.addEventListener('click', () => {
@@ -225,6 +240,50 @@ function addWindowFunctionality(window) {
             setFontSize(fontSizeSlider.value);
         });
     }
+
+    // Add resizing functionality
+    const resizeHandles = window.querySelectorAll('.resize-handle');
+    resizeHandles.forEach(handle => {
+        handle.addEventListener('mousedown', startResize);
+    });
+
+    function startResize(e) {
+        e.preventDefault();
+        window.style.zIndex = getTopZIndex() + 1;
+        const direction = e.target.className.split(' ')[1];
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const startWidth = parseInt(window.offsetWidth, 10);
+        const startHeight = parseInt(window.offsetHeight, 10);
+        const startLeft = window.offsetLeft;
+        const startTop = window.offsetTop;
+
+        function resize(e) {
+            if (direction.includes('right'))
+                window.style.width = `${startWidth + e.clientX - startX}px`;
+            if (direction.includes('bottom'))
+                window.style.height = `${startHeight + e.clientY - startY}px`;
+            if (direction.includes('left')) {
+                const newWidth = startWidth - (e.clientX - startX);
+                window.style.width = `${newWidth}px`;
+                window.style.left = `${startLeft + startWidth - newWidth}px`;
+            }
+            if (direction.includes('top')) {
+                const newHeight = startHeight - (e.clientY - startY);
+                window.style.height = `${newHeight}px`;
+                window.style.top = `${startTop + startHeight - newHeight}px`;
+            }
+        }
+
+        function stopResize() {
+            document.removeEventListener('mousemove', resize);
+            document.removeEventListener('mouseup', stopResize);
+            saveWindowState(window);
+        }
+
+        document.addEventListener('mousemove', resize);
+        document.addEventListener('mouseup', stopResize);
+    }
 }
 
 function getTopZIndex() {
@@ -246,6 +305,9 @@ function closeWindow(window) {
     if (windowId) {
         delete windows[windowId];
     }
+    
+    // Remove the window from localStorage when closed
+    localStorage.removeItem(window.id);
 }
 
 function createTaskbarButton(window) {
@@ -277,6 +339,17 @@ function updateTaskbarButtonState(window) {
     if (taskbarButton) {
         taskbarButton.classList.toggle('active', window.classList.contains('show') && !window.classList.contains('minimized'));
     }
+}
+
+function saveWindowState(window) {
+    const windowId = window.id;
+    const state = {
+        left: window.style.left,
+        top: window.style.top,
+        width: window.style.width,
+        height: window.style.height
+    };
+    localStorage.setItem(windowId, JSON.stringify(state));
 }
 
 function showShutdownScreen() {

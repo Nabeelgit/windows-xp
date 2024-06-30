@@ -364,3 +364,76 @@ body {
 .file-explorer-content li:hover {
     text-decoration: underline;
 }
+.resize-handle {
+    position: absolute;
+    background: transparent;
+}
+
+.resize-handle.top {
+    top: -3px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    cursor: n-resize;
+}
+
+.resize-handle.bottom {
+    bottom: -3px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    cursor: s-resize;
+    cursor: s-resize;
+}
+
+.resize-handle.left {
+    left: -3px;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    cursor: w-resize;
+}
+
+.resize-handle.right {
+    right: -3px;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    cursor: e-resize;
+}
+
+.resize-handle.top-left {
+    top: -3px;
+    left: -3px;
+    width: 6px;
+    height: 6px;
+    cursor: nw-resize;
+}
+
+.resize-handle.top-right {
+    top: -3px;
+    right: -3px;
+    width: 6px;
+    height: 6px;
+    cursor: ne-resize;
+}
+
+.resize-handle.bottom-left {
+    bottom: -3px;
+    left: -3px;
+    width: 6px;
+    height: 6px;
+    cursor: sw-resize;
+}
+
+.resize-handle.bottom-right {
+    bottom: -3px;
+    right: -3px;
+    width: 6px;
+    height: 6px;
+    cursor: se-resize;
+}
+
+.window.maximized .resize-handle {
+    display: none;
+}
