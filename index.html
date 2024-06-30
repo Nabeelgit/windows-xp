@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows XP</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="desktop-icon" data-window="myComputer">
+        <img src="./icons/mycomputer.webp" alt="My Computer">
+        <div>My Computer</div>
+    </div>
+    <div class="desktop-icon">
+        <img src="./icons/recyclingbin.png" alt="Recycle Bin">
+        <div>Recycle Bin</div>
+    </div>
+    <div class="taskbar">
+        <button class="start-button">Start</button>
+        <div class="taskbar-windows"></div>
+    </div>
+    <div class="start-menu">
+        <div class="start-menu-item">My Profile</div>
+        <div class="start-menu-item">Settings</div>
+        <div class="start-menu-item">Sleep</div>
+        <div class="start-menu-item">Restart</div>
+        <div class="start-menu-item">Shut Down</div>
+    </div>
+    <div id="myComputer" class="window">
+        <div class="window-header">
+            <span class="window-title">My Computer</span>
+            <div class="window-controls">
+                <button class="window-control minimize">-</button>
+                <button class="window-control maximize">□</button>
+                <button class="window-control close">×</button>
+            </div>
+        </div>
+        <div class="window-content">
+            <!-- Window content goes here -->
+        </div>
+    </div>
+    <div id="settings-window" class="window">
+        <div class="window-header">
+            <span class="window-title">Settings</span>
+            <div class="window-controls">
+                <button class="window-control minimize">-</button>
+                <button class="window-control maximize">□</button>
+                <button class="window-control close">&times;</button>
+            </div>
+        </div>
+        <div class="window-content">
+            <label for="font-size-slider">Font Size: <span id="font-size-value">16</span>px</label>
+            <input type="range" id="font-size-slider" min="12" max="24" value="16">
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
